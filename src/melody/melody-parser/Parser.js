@@ -585,6 +585,10 @@ export default class Parser {
             tokens.next(); // consume '('
             const expr = this.matchExpression();
             tokens.expect(Types.RPAREN);
+            // Remember author-written parentheses so the printer can
+            // preserve them instead of reconstructing grouping from
+            // operator precedence alone.
+            expr.wasParenthesized = true;
             return this.matchPostfixExpression(expr);
         }
 

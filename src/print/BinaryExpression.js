@@ -55,6 +55,12 @@ const otherNeedsParentheses = (node, otherProp) => {
         ? operatorPrecedence[node[otherProp].operator]
         : Number.MAX_SAFE_INTEGER;
     return (
+        // Author-written parentheses are preserved: operator precedence
+        // is not reliable grounds for eliding them because Twig itself
+        // is changing precedences (e.g. "??" and "~" in Twig 4.0, with
+        // deprecation warnings for unparenthesized use since 3.15)
+        ((isBinaryOther || Node.isConditionalExpression(other)) &&
+            other.wasParenthesized === true) ||
         otherPrecedence < ownPrecedence ||
         (otherPrecedence > ownPrecedence &&
             isBinaryOther &&

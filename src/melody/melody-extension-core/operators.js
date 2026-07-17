@@ -30,7 +30,8 @@ import {
     copyStart,
     copyEnd,
     copyLoc,
-    LEFT
+    LEFT,
+    RIGHT
 } from "../melody-parser/index.js";
 
 export const unaryOperators = [];
@@ -292,11 +293,13 @@ export const BinaryPowerExpression = createBinaryOperatorNode({
     precedence: 200,
     associativity: LEFT
 });
+// Twig registers "??" as right-associative; the precedence matches
+// Twig 3.x (Twig 4.0 will lower it to 5, announced in 3.15)
 export const BinaryNullCoalesceExpression = createBinaryOperatorNode({
     text: "??",
     type: "BinaryNullCoalesceExpression",
     precedence: 300,
-    associativity: LEFT
+    associativity: RIGHT
 });
 
 // Ref: https://plugins.craftcms.com/empty-coalesce
@@ -304,7 +307,7 @@ export const BinaryEmptyCoalesceExpression = createBinaryOperatorNode({
     text: "???",
     type: "BinaryEmptyCoalesceExpression",
     precedence: 300,
-    associativity: LEFT
+    associativity: RIGHT
 });
 //endregion
 

@@ -1,4 +1,5 @@
 import { doc } from "prettier";
+import { Node } from "../melody/melody-types/index.js";
 import {
     EXPRESSION_NEEDED,
     STRING_NEEDS_QUOTES,
@@ -18,7 +19,17 @@ const printConditionalExpression = (node, path, print) => {
     if (node.alternate) {
         rest.push(line, ": ", path.call(print, "alternate"));
     }
-    const parts = [path.call(print, "test"), indent(rest)];
+    // Preserve author-written parentheses around the test, e.g.
+    // "(a ?? b) ? x : y" or a nested "(a ? b : c) ? x : y"
+    const testNeedsParens =
+        node.test.wasParenthesized === true &&
+        (Node.isBinaryExpression(node.test) ||
+            Node.isConditionalExpression(node.test));
+    const printedTest = path.call(print, "test");
+    const parts = [
+        testNeedsParens ? ["(", printedTest, ")"] : printedTest,
+        indent(rest)
+    ];
     wrapExpressionIfNeeded(path, parts, node);
 
     return group(parts);
