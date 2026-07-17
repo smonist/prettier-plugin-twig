@@ -430,11 +430,14 @@ visitor(FilterExpression, "target", "arguments");
 
 export class Element extends Node {
     /**
-     * @param {String} name
+     * @param {String|null} name - null for dynamically named elements,
+     *                             e.g. <{{ tagName }}>
      */
     constructor(name) {
         super();
         this.name = name;
+        // Expression node when the element name is dynamic
+        this.dynamicName = null;
         this.attributes = [];
         this.children = [];
         this.selfClosing = false;

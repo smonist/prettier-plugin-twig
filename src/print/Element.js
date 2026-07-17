@@ -13,7 +13,10 @@ const { group, line, hardline, softline, indent, join } = doc.builders;
 const printOpeningTag = (node, path, print, options) => {
     const groupId = Symbol("opening-tag");
 
-    const opener = "<" + node.name;
+    // Dynamic element names print as an expression, e.g. <{{ tagName }}>
+    const opener = node.dynamicName
+        ? ["<", path.call(print, "dynamicName")]
+        : "<" + node.name;
     const printedAttributes = printSeparatedList(path, print, "", "attributes");
 
     const openingTagEnd = [];
@@ -50,6 +53,11 @@ const printElement = (node, path, print, options) => {
     // Set a flag in case attributes contain, e.g., a FilterExpression
     node[EXPRESSION_NEEDED] = true;
     const openingGroup = group(printOpeningTag(node, path, print, options));
+    // The closing tag repeats the dynamic name; it has to be printed
+    // while EXPRESSION_NEEDED is still active
+    const printedClosingName = node.dynamicName
+        ? path.call(print, "dynamicName")
+        : node.name;
     node[EXPRESSION_NEEDED] = false;
     node[STRING_NEEDS_QUOTES] = false;
 
@@ -61,7 +69,7 @@ const printElement = (node, path, print, options) => {
     node.children = removeSurroundingWhitespace(node.children);
 
     const childGroups = printChildGroups(node, path, print, "children");
-    const closingTag = ["</", node.name, ">"];
+    const closingTag = ["</", printedClosingName, ">"];
     const result = [openingGroup];
     const joinedChildren = childGroups;
     if (isOwnlineElement(node) || isInlineElement(node)) {

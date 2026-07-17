@@ -319,20 +319,28 @@ export default class Parser {
         const elementNameToken = tokens.la(0);
         const tagStartToken = tokens.la(-1);
         let elementName;
+        let dynamicName = null;
         if (!(elementName = tokens.nextIf(Types.SYMBOL))) {
-            this.error({
-                title: "Expected element start",
-                pos: elementNameToken.pos,
-                advice:
-                    tokens.lat(0) === Types.SLASH
-                        ? `Unexpected closing "${
-                              tokens.la(1).text
-                          }" tag. Seems like your DOM is out of control.`
-                        : "Expected an element to start"
-            });
+            if (tokens.nextIf(Types.EXPRESSION_START)) {
+                // dynamic element name, e.g. <{{ tagName }}>
+                dynamicName = this.matchExpression();
+                tokens.expect(Types.EXPRESSION_END);
+            } else {
+                this.error({
+                    title: "Expected element start",
+                    pos: elementNameToken.pos,
+                    advice:
+                        tokens.lat(0) === Types.SLASH
+                            ? `Unexpected closing "${
+                                  tokens.la(1).text
+                              }" tag. Seems like your DOM is out of control.`
+                            : "Expected an element to start"
+                });
+            }
         }
 
-        const element = new n.Element(elementName.text);
+        const element = new n.Element(elementName ? elementName.text : null);
+        element.dynamicName = dynamicName;
 
         this.matchAttributes(element, tokens);
 
@@ -341,7 +349,7 @@ export default class Parser {
             element.selfClosing = true;
         } else {
             tokens.expect(Types.ELEMENT_END);
-            if (voidElements[elementName.text]) {
+            if (elementName && voidElements[elementName.text]) {
                 element.selfClosing = true;
             } else {
                 element.children = this.parse((_, token, tokens) => {
@@ -349,6 +357,21 @@ export default class Parser {
                         token.type === Types.ELEMENT_START &&
                         tokens.lat(0) === Types.SLASH
                     ) {
+                        if (dynamicName) {
+                            // A dynamically named element is closed by
+                            // the next dynamic closing tag, e.g.
+                            // </{{ tagName }}>; expression equality is
+                            // not enforced
+                            if (tokens.lat(1) === Types.EXPRESSION_START) {
+                                tokens.next(); // SLASH
+                                tokens.next(); // EXPRESSION_START
+                                this.matchExpression();
+                                tokens.expect(Types.EXPRESSION_END);
+                                tokens.expect(Types.ELEMENT_END);
+                                return true;
+                            }
+                            return false;
+                        }
                         const name = tokens.la(1);
                         if (
                             name.type === Types.SYMBOL &&

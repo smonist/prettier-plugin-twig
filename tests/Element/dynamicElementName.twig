@@ -1,0 +1,10 @@
+{% set tag = level > 1 ? "h#{level}" : 'h1' %}
+<{{ tag }}>{{ text }}</{{ tag }}>
+
+<{{ heading }} class="title" id="{{ id }}">{{ text }}</{{ heading }}>
+
+<{{ icon }} />
+
+<{{ wrapper|default('div') }}><span>nested</span></{{ wrapper|default('div') }}>
+
+<{{ outer }}><{{ inner }}>deep</{{ inner }}></{{ outer }}>

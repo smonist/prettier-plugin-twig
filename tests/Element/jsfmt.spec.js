@@ -2,6 +2,12 @@ import { run_spec } from "tests_config/run_spec";
 import { describe, expect, it } from "vitest";
 
 describe("Elements", () => {
+    it("should handle dynamic element names", async () => {
+        const { actual, snapshotFile } = await run_spec(import.meta.url, {
+            source: "dynamicElementName.twig"
+        });
+        expect(actual).toMatchFileSnapshot(snapshotFile);
+    });
     it("should support any valid html attributes so that things like AlpineJS work #37", async () => {
         const { actual, snapshotFile } = await run_spec(import.meta.url, {
             source: "alpinejs.twig"
