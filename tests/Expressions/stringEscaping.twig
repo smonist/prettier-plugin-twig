@@ -1,0 +1,7 @@
+{% set t = x ? " target=\"#{x}\"" : '' %}
+
+{% set both = 'mixed "double" and \'single\' quotes' %}
+
+{{ "interpolated \"#{name}\" done" }}
+
+{% set attr = " data-icon=\"#{icon}\" data-size=\"#{size}\"" %}

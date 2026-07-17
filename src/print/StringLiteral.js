@@ -2,7 +2,8 @@ import {
     firstValueInAncestorChain,
     quoteChar,
     STRING_NEEDS_QUOTES,
-    OVERRIDE_QUOTE_CHAR
+    OVERRIDE_QUOTE_CHAR,
+    INSIDE_OF_STRING
 } from "../util/index.js";
 
 const isUnmaskedOccurrence = (s, pos) => {
@@ -22,6 +23,13 @@ const containsUnmasked = char => s => {
 
 const containsUnmaskedSingleQuote = containsUnmasked("'");
 const containsUnmaskedDoubleQuote = containsUnmasked('"');
+
+// Escape unmasked occurrences of `quote` in `s`, leaving
+// already-escaped sequences (e.g. "\\" or "\'") untouched
+const escapeQuote = (s, quote) =>
+    s.replace(new RegExp(`\\\\[\\s\\S]|\\${quote}`, "g"), m =>
+        m === quote ? "\\" + m : m
+    );
 
 const getQuoteChar = (s, options) => {
     if (containsUnmaskedSingleQuote(s)) {
@@ -54,7 +62,14 @@ const printStringLiteral = (node, path, print, options) => {
         const quote = overridingQuoteChar
             ? overridingQuoteChar
             : getQuoteChar(node.value, options);
-        return quote + node.value + quote;
+        return quote + escapeQuote(node.value, quote) + quote;
+    }
+
+    // Fragments of an interpolated string are printed bare, but
+    // printInterpolatedString wraps them in hardcoded double quotes,
+    // so embedded double quotes must be escaped here.
+    if (firstValueInAncestorChain(path, INSIDE_OF_STRING, false)) {
+        return escapeQuote(node.value, '"');
     }
 
     return node.value;
