@@ -1,0 +1,37 @@
+<button {% if disabled %}disabled{% endif %}>x</button>
+
+<a href="{{ url }}" {% if target %}target="{{ target }}"{% endif %}>x</a>
+
+<button
+    {% if active %}
+        class="on"
+    {% else %}
+        class="off"
+    {% endif %}
+>
+    x
+</button>
+
+<div
+    {% if a %}
+        data-a="1"
+        data-b="2"
+    {% elseif b %}
+        data-c="3"
+    {% else %}
+        data-d="4"
+    {% endif %}
+>
+    x
+</div>
+
+<span {% if spread %}{{ attributes }}{% endif %}>x</span>
+
+<input
+    type="text"
+    {% if required %}
+        required
+        aria-required="true"
+    {% endif %}
+    name="q"
+/>

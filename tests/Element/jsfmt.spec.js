@@ -2,6 +2,12 @@ import { run_spec } from "tests_config/run_spec";
 import { describe, expect, it } from "vitest";
 
 describe("Elements", () => {
+    it("should handle if tags in attribute position", async () => {
+        const { actual, snapshotFile } = await run_spec(import.meta.url, {
+            source: "conditionalAttributes.twig"
+        });
+        expect(actual).toMatchFileSnapshot(snapshotFile);
+    });
     it("should handle dynamic element names", async () => {
         const { actual, snapshotFile } = await run_spec(import.meta.url, {
             source: "dynamicElementName.twig"

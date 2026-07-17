@@ -509,13 +509,23 @@ export default class Lexer {
     matchSymbol(pos) {
         const input = this.input;
         const inElement = this.state === State.ELEMENT;
+        // "{" is a valid attribute name character per the HTML spec,
+        // but a following "{", "%" or "#" starts a Twig construct
+        // ({{ ... }}, {% ... %}, {# ... #}) and ends the symbol
+        const startsTwigConstruct = c =>
+            c === 123 &&
+            (input.lac(1) === 123 ||
+                input.lac(1) === 37 ||
+                input.lac(1) === 35);
         let c;
         while (
             (c = input.lac(0)) &&
             (c === 95 ||
                 isAlpha(c) ||
                 isDigit(c) ||
-                (inElement && isValidAttributeName(c)))
+                (inElement &&
+                    isValidAttributeName(c) &&
+                    !startsTwigConstruct(c)))
         ) {
             input.next();
         }
